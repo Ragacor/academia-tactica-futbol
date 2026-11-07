@@ -312,15 +312,13 @@ function init(){
   if(!('speechSynthesis' in window)){$('speakBtn').textContent='Audio no disponible';return;}
   if(speechSynthesis.speaking){stopSpeech();return;}
   refreshCoachVoice();
-  if(!spanishMaleVoice){
-   $('speakBtn').textContent='🎙️ Voz no disponible';
-   $('speakBtn').title='Este dispositivo no ofrece una voz masculina española. No se utilizará la voz femenina.';
-   return;
-  }
+  // Si iOS no ofrece voz masculina, conservar la lectura funcional original.
+  // No afirmar que el sistema permite garantizar el género de la voz.
+  $('speakBtn').removeAttribute('title');
   const phrase=`${concept(st.concept).title}. ${diagrams(st.concept)[st.scene]?.desc||concept(st.concept).summary}`;
   const utterance=new SpeechSynthesisUtterance(phrase);
-  utterance.voice=spanishMaleVoice;
-  utterance.lang=spanishMaleVoice.lang;
+  if(spanishMaleVoice)utterance.voice=spanishMaleVoice;
+  utterance.lang=spanishMaleVoice?.lang||'es-ES';
   utterance.rate=1.02;utterance.pitch=.95;
   utterance.onend=()=>{$('speakBtn').textContent='🔊 Escuchar';};
   utterance.onerror=()=>{$('speakBtn').textContent='🔊 Escuchar';};
