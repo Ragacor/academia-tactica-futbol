@@ -41,7 +41,13 @@
 <div id="sceneStrip" class="stage-strip" role="group" aria-label="Escenas disponibles"></div><div class="field-frame" id="boardFrame"></div>
 <p id="pitchNote" class="pitch-note"></p><div id="actorHint" class="actor-hint" role="status" aria-live="polite" hidden></div>
 <div class="board-actions"><div class="buttons-left"><button id="prevBtn" class="soft" type="button">← Anterior</button><button id="nextBtn" class="primary" type="button">Siguiente →</button></div><div class="buttons-right"><button id="autoBtn" class="soft" type="button" aria-pressed="false">▶ Reproducir</button><button id="markBtn" class="mark-button" type="button">✓ Marcar repasado</button></div></div>
-<div class="bottom-tip">👆 Pulsa sobre un jugador para identificarlo · Usa Anterior y Siguiente para recorrer las escenas y los 20 conceptos · Las posiciones del dibujo son esquemáticas, no instrucciones sobre distancias.</div>
+<div id="concept-navigation" style="margin:14px 14px 16px;padding:15px;background:#eef6ff;border:2px solid #c6ddfb;border-radius:18px;text-align:center">
+ <div style="font-weight:900;color:#173b72;font-size:15px;margin-bottom:9px">📚 CAMBIAR DE CONCEPTO</div>
+ <button id="nextConceptBtn" type="button" style="display:block;width:100%;padding:17px 13px;min-height:70px;border:0;border-radius:15px;background:#1166dc;color:white;font-weight:900;font-size:clamp(16px,4.5vw,21px);line-height:1.3;box-shadow:0 4px 0 #09499d">📘 Siguiente concepto →</button>
+ <button id="prevConceptBtn" type="button" style="display:block;margin:13px auto 0;padding:8px 14px;background:transparent;color:#2d5485;border:0;font-weight:800">← Concepto anterior</button>
+ <p id="conceptNavHint" style="margin:12px 0 0;color:#4d6180;font-size:13px">Aquí puedes pasar a otro tema cuando quieras.</p>
+</div>
+<div class="bottom-tip">👆 Pulsa sobre un jugador para identificarlo · Usa los botones de jugada o el botón azul «Ir al siguiente concepto» para cambiar de tema · Las posiciones del dibujo son esquemáticas, no instrucciones sobre distancias.</div>
 </section>
 <aside class="panel details-panel" aria-label="Indicaciones del documento"><div class="details-head"><h2 id="detailsHead">Explicaciones para 8–9 años</h2><p id="detailSubtitle"></p>
 <div class="detail-tabs" id="detailTabs" role="group" aria-label="Indicaciones que mostrar"><button class="detail-tab active" type="button" data-mode="scene" aria-pressed="true">Esta escena</button><button class="detail-tab" type="button" data-mode="all" aria-pressed="false">Todo el concepto</button></div>
@@ -203,7 +209,15 @@ function renderStage(prev=null){
  $('prevBtn').disabled=st.concept===1 && isFirst;
  $('nextBtn').disabled=st.concept===20 && isLast;
  $('prevBtn').textContent=isFirst && st.concept>1?'← Concepto anterior':'← Anterior';
- $('nextBtn').textContent=isLast && st.concept<20?'Siguiente concepto →':'Siguiente →';
+ $('nextBtn').textContent=isLast && st.concept<20?'📘 Pasar al siguiente concepto →':'Siguiente jugada →';
+ $('prevBtn').textContent=isFirst && st.concept>1?'← Concepto anterior':'← Jugada anterior';
+ $('nextConceptBtn').disabled=st.concept===20;
+ $('prevConceptBtn').disabled=st.concept===1;
+ $('nextConceptBtn').textContent=st.concept<20?'📘 Ir al concepto '+(st.concept+1)+': '+concept(st.concept+1).title+' →':'🏆 ¡Has llegado al último concepto!';
+ $('nextConceptBtn').style.opacity=st.concept===20?'.55':'1';
+ $('prevConceptBtn').textContent=st.concept>1?'← Volver al concepto '+(st.concept-1):'← No hay concepto anterior';
+ $('prevConceptBtn').style.display=st.concept===1?'none':'block';
+ $('conceptNavHint').textContent=st.concept<20?'Puedes pasar al siguiente concepto cuando quieras, sin terminar todas las jugadas.':'¡Último concepto! Puedes repasar otros temas desde el menú.';
  $('autoBtn').disabled=!has||stages.length<2;
  $('boardFrame').innerHTML=has?fieldHtml(sc,prev,[8,9,15,16,18,19,20].includes(st.concept)&&!!prev):`<div class="no-pitch"><div class="no-pitch-inside"><div class="no-pitch-symbol">📘 ⚽</div><h3>Aprender sin inventar movimientos</h3><p>${safe(NONSPATIAL[String(st.concept)])}</p><p class="narrow-note">Puedes leer todas las indicaciones de los entrenadores en el panel de la derecha (o debajo, en el móvil).</p></div></div>`;
  $('pitchNote').textContent=has?(sc.foot||'Campo esquemático: las posiciones y distancias no están a escala y no añaden nuevas instrucciones.'):'Este concepto se estudia mediante las indicaciones del documento.';
@@ -262,6 +276,8 @@ function init(){
  $('lessonList').addEventListener('click',e=>{const el=e.target.closest('[data-concept]');if(el)selectConcept(Number(el.dataset.concept));});
  $('search').addEventListener('input',e=>{st.search=e.target.value;renderNav();});
  $('prevBtn').addEventListener('click',()=>gotoScene(-1));$('nextBtn').addEventListener('click',()=>gotoScene(1));
+ $('nextConceptBtn').addEventListener('click',()=>{if(st.concept<20)selectConcept(st.concept+1)});
+ $('prevConceptBtn').addEventListener('click',()=>{if(st.concept>1)selectConcept(st.concept-1)});
  $('sceneStrip').addEventListener('click',e=>{const el=e.target.closest('[data-scene]');if(!el)return;stopAuto();const i=+el.dataset.scene;if(i===st.scene)return;const prev=diagrams(st.concept)[st.scene];st.scene=i;st.selected=null;stopSpeech();renderStage(prev);renderDetail();});
  $('boardFrame').addEventListener('click',e=>{const el=e.target.closest('[data-person]');if(el)showActor(el.dataset.person);});
  $('boardFrame').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-person]')){e.preventDefault();showActor(e.target.dataset.person);}});
