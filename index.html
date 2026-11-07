@@ -109,7 +109,10 @@ function renderNav(){
  $('repasoBar').setAttribute('aria-valuenow',String(n));
 }
 function stopAuto(){if(st.timer){clearInterval(st.timer);st.timer=null;}$('autoBtn').textContent='▶ Reproducir';$('autoBtn').setAttribute('aria-pressed','false');}
-function stopSpeech(){try{speechSynthesis.cancel();}catch(e){} $('speakBtn').textContent='🔊 Escuchar';}
+const COACH_AUDIO_URL="https://resource2.heygen.ai/text_to_speech/6937345582054193ae6d63d7b843a7c9/c0167ec52f1743fea0de680646cbfd55/id=f8fe0d6e-c2ef-47a8-b5d4-e5b60c82f24f.mp3";
+let coachAudio=null;
+let coachAudioPlaying=false;
+function stopSpeech(){if(coachAudio){coachAudio.pause();coachAudio.currentTime=0;}coachAudioPlaying=false;try{speechSynthesis.cancel();}catch(e){} $('speakBtn').textContent='🔊 Escuchar';}
 function selectConcept(n){
  if(!concept(n))return;stopAuto();stopSpeech();st.concept=n;st.scene=0;st.selected=null;renderAll();
  // Keep child-friendly navigation in view after selecting on a small screen.
@@ -145,6 +148,7 @@ function renderAll(){
  $('lessonSummary').textContent=c.summary;
  $('markBtn').textContent=st.read.has(st.concept)?'✓ Ya repasado':'✓ Marcar repasado';
  $('markBtn').classList.toggle('is-done',st.read.has(st.concept));
+ $('voiceNote').textContent=st.concept===1 && st.scene===0?'🎙️ Esta primera escena tiene narración de entrenador (HeyGen).':'Resto de escenas: lectura con voz del dispositivo.';
  renderStage();renderDetail();
 }
 function px(x){return +(40+4.2*x).toFixed(1)}
@@ -320,14 +324,13 @@ function init(){
   }
   const preferred=voices.find(v=>/es[-_]ES/i.test(v.lang)&&maleNamePattern.test(v.name))||voices.find(v=>maleNamePattern.test(v.name))||voices.find(v=>/es[-_]ES/i.test(v.lang))||voices[0];
   picker.value=voices.some(v=>v.voiceURI===previous)?previous:preferred.voiceURI;
-  $('voiceNote').textContent=voices.length+' voz'+(voices.length===1?'':'voces')+' disponible'+(voices.length===1?'':'s')+'. Escucha y elige la que más te guste.';
+  $('voiceNote').textContent='Voz del dispositivo para las escenas sin audio de entrenador.';
  }
  loadSpanishVoices();
  if('speechSynthesis' in window)speechSynthesis.addEventListener?.('voiceschanged',loadSpanishVoices);
  $('voiceChoice').addEventListener('change',()=>stopSpeech());
- $('speakBtn').addEventListener('click',()=>{
+ function readWithDevice(){
   if(!('speechSynthesis' in window)){$('speakBtn').textContent='Audio no disponible';return;}
-  if(speechSynthesis.speaking){stopSpeech();return;}
   const phrase=`${concept(st.concept).title}! ${diagrams(st.concept)[st.scene]?.desc||concept(st.concept).summary}`;
   const utterance=new SpeechSynthesisUtterance(phrase);
   utterance.lang='es-ES';utterance.rate=1.03;utterance.pitch=.97;utterance.volume=1;
@@ -335,6 +338,23 @@ function init(){
   if(choice)utterance.voice=choice;
   utterance.onend=()=>{$('speakBtn').textContent='🔊 Escuchar';};utterance.onerror=()=>{$('speakBtn').textContent='🔊 Escuchar';};
   $('speakBtn').textContent='■ Detener';try{speechSynthesis.speak(utterance);}catch(e){$('speakBtn').textContent='🔊 Escuchar';}
+ }
+ $('speakBtn').addEventListener('click',()=>{
+  if(coachAudioPlaying || ('speechSynthesis' in window && speechSynthesis.speaking)){stopSpeech();return;}
+  // Única escena con una narración expresiva real generada en HeyGen.
+  if(st.concept===1 && st.scene===0){
+   if(!coachAudio){
+    coachAudio=new Audio(COACH_AUDIO_URL);
+    coachAudio.preload='none';
+    coachAudio.onended=()=>{coachAudioPlaying=false;$('speakBtn').textContent='🔊 Escuchar';};
+    coachAudio.onerror=()=>{coachAudioPlaying=false;$('voiceNote').textContent='No se pudo abrir el audio de entrenador: usando voz del dispositivo.';readWithDevice();};
+   }
+   coachAudioPlaying=true;$('speakBtn').textContent='■ Detener';
+   const p=coachAudio.play();
+   if(p&&typeof p.catch==='function')p.catch(()=>{coachAudioPlaying=false;$('voiceNote').textContent='Audio de entrenador no disponible: usando voz del dispositivo.';readWithDevice();});
+   return;
+  }
+  readWithDevice();
  });
  document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.key==='ArrowRight')gotoScene(1);if(e.key==='ArrowLeft')gotoScene(-1);});
  window.addEventListener('beforeunload',()=>stopSpeech());
