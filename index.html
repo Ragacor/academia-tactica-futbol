@@ -298,12 +298,30 @@ function init(){
   $('autoBtn').textContent='❚❚ Pausar';$('autoBtn').setAttribute('aria-pressed','true');
   st.timer=setInterval(()=>{if(st.scene>=diagrams(st.concept).length-1){stopAuto();return;}gotoScene(1);},4800);
  });
+ // Sin selector visible: preferimos automáticamente una voz masculina española.
+ const maleSpanishNames=/(jorge|diego|alvaro|álvaro|carlos|pablo|enrique|antonio|daniel|javier|manuel|marcos|raul|raúl|sergio|male|masculin|hombre)/i;
+ let spanishMaleVoice=null;
+ function refreshCoachVoice(){
+  if(!('speechSynthesis' in window))return;
+  const candidates=speechSynthesis.getVoices().filter(v=>/^es([_-]|$)/i.test(v.lang||'')&&maleSpanishNames.test(v.name||''));
+  spanishMaleVoice=candidates.find(v=>/^es[-_]ES$/i.test(v.lang||''))||candidates[0]||null;
+ }
+ refreshCoachVoice();
+ if('speechSynthesis' in window)speechSynthesis.addEventListener?.('voiceschanged',refreshCoachVoice);
  $('speakBtn').addEventListener('click',()=>{
   if(!('speechSynthesis' in window)){$('speakBtn').textContent='Audio no disponible';return;}
   if(speechSynthesis.speaking){stopSpeech();return;}
+  refreshCoachVoice();
+  if(!spanishMaleVoice){
+   $('speakBtn').textContent='🎙️ Voz no disponible';
+   $('speakBtn').title='Este dispositivo no ofrece una voz masculina española. No se utilizará la voz femenina.';
+   return;
+  }
   const phrase=`${concept(st.concept).title}. ${diagrams(st.concept)[st.scene]?.desc||concept(st.concept).summary}`;
   const utterance=new SpeechSynthesisUtterance(phrase);
-  utterance.lang='es-ES';utterance.rate=.86;utterance.pitch=1.03;
+  utterance.voice=spanishMaleVoice;
+  utterance.lang=spanishMaleVoice.lang;
+  utterance.rate=1.02;utterance.pitch=.95;
   utterance.onend=()=>{$('speakBtn').textContent='🔊 Escuchar';};
   utterance.onerror=()=>{$('speakBtn').textContent='🔊 Escuchar';};
   $('speakBtn').textContent='■ Detener';
