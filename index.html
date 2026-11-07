@@ -208,7 +208,6 @@ function renderStage(prev=null){
  const isLast=!has || st.scene===stages.length-1;
  $('prevBtn').disabled=st.concept===1 && isFirst;
  $('nextBtn').disabled=st.concept===20 && isLast;
- $('prevBtn').textContent=isFirst && st.concept>1?'← Concepto anterior':'← Anterior';
  $('nextBtn').textContent=isLast && st.concept<20?'📘 Pasar al siguiente concepto →':'Siguiente jugada →';
  $('prevBtn').textContent=isFirst && st.concept>1?'← Concepto anterior':'← Jugada anterior';
  $('nextConceptBtn').disabled=st.concept===20;
