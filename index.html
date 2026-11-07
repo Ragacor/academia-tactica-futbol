@@ -109,7 +109,7 @@ function stopSpeech(){try{speechSynthesis.cancel();}catch(e){} $('speakBtn').tex
 function selectConcept(n){
  if(!concept(n))return;stopAuto();stopSpeech();st.concept=n;st.scene=0;st.selected=null;renderAll();
  // Keep child-friendly navigation in view after selecting on a small screen.
- if(window.matchMedia('(max-width: 740px)').matches){document.querySelector('.nav-panel').classList.remove('mobile-open');$('mobileConceptToggle').setAttribute('aria-expanded','false');$('board').scrollIntoView({behavior:'smooth',block:'start'});}
+ if(window.matchMedia('(max-width: 740px)').matches){document.querySelector('.nav-panel').classList.remove('mobile-open');$('mobileConceptToggle').setAttribute('aria-expanded','false');$('mobileConceptToggle').innerHTML='☰ Elegir concepto <span aria-hidden="true">⌄</span>';$('board').scrollIntoView({behavior:'smooth',block:'start'});}
 }
 function gotoScene(delta){
  if(delta!==1 && delta!==-1)return;
