@@ -41,7 +41,7 @@
 <div id="sceneStrip" class="stage-strip" role="group" aria-label="Escenas disponibles"></div><div class="field-frame" id="boardFrame"></div>
 <p id="pitchNote" class="pitch-note"></p><div id="actorHint" class="actor-hint" role="status" aria-live="polite" hidden></div>
 <div class="board-actions"><div class="buttons-left"><button id="prevBtn" class="soft" type="button">← Anterior</button><button id="nextBtn" class="primary" type="button">Siguiente →</button></div><div class="buttons-right"><button id="autoBtn" class="soft" type="button" aria-pressed="false">▶ Reproducir</button><button id="markBtn" class="mark-button" type="button">✓ Marcar repasado</button></div></div>
-<div class="bottom-tip">👆 Pulsa sobre un jugador para identificarlo · Usa ← y → para cambiar de escena · Las posiciones del dibujo son esquemáticas, no instrucciones sobre distancias.</div>
+<div class="bottom-tip">👆 Pulsa sobre un jugador para identificarlo · Usa Anterior y Siguiente para recorrer las escenas y los 20 conceptos · Las posiciones del dibujo son esquemáticas, no instrucciones sobre distancias.</div>
 </section>
 <aside class="panel details-panel" aria-label="Indicaciones del documento"><div class="details-head"><h2 id="detailsHead">Explicaciones para 8–9 años</h2><p id="detailSubtitle"></p>
 <div class="detail-tabs" id="detailTabs" role="group" aria-label="Indicaciones que mostrar"><button class="detail-tab active" type="button" data-mode="scene" aria-pressed="true">Esta escena</button><button class="detail-tab" type="button" data-mode="all" aria-pressed="false">Todo el concepto</button></div>
@@ -101,13 +101,25 @@ function selectConcept(n){
  if(window.matchMedia('(max-width: 740px)').matches){document.querySelector('.nav-panel').classList.remove('mobile-open');$('mobileConceptToggle').setAttribute('aria-expanded','false');$('board').scrollIntoView({behavior:'smooth',block:'start'});}
 }
 function gotoScene(delta){
- const count=diagrams(st.concept).length;
- if(!count)return;
- const next=Math.max(0,Math.min(st.scene+delta,count-1));
- if(st.scene===next)return;
- const prev=diagrams(st.concept)[st.scene];
- st.scene=next;st.selected=null;stopSpeech();
- renderStage(prev);renderDetail();
+ if(delta!==1 && delta!==-1)return;
+ const stages=diagrams(st.concept);
+ const destination=st.scene+delta;
+ if(destination>=0 && destination<stages.length){
+  const previous=stages[st.scene];
+  st.scene=destination;st.selected=null;stopSpeech();
+  renderStage(previous);renderDetail();
+  return;
+ }
+ // Continuar entre conceptos, también cuando el actual no tiene escenas.
+ const nextConcept=st.concept+delta;
+ if(nextConcept<1 || nextConcept>20)return;
+ stopAuto();
+ selectConcept(nextConcept);
+ if(delta<0){
+  const previousStages=diagrams(st.concept);
+  st.scene=Math.max(0,previousStages.length-1);
+  renderStage();renderDetail();
+ }
 }
 function renderAll(){
  renderNav();const c=concept(st.concept);const b=block(st.concept);
@@ -186,8 +198,12 @@ function renderStage(prev=null){
  $('stageKicker').textContent=has?`ESCENA ${st.scene+1} DE ${stages.length}`:'FICHA CONCEPTUAL';
  $('sceneStrip').innerHTML=has?stages.map((s,i)=>`<button type="button" class="stage-chip ${i===st.scene?'current':''}" data-scene="${i}" title="${safe(s.title)}">${i+1}. ${safe(s.title)}</button>`).join(''):'';
  $('sceneStrip').hidden=!has;
- $('prevBtn').disabled=!has||st.scene===0;
- $('nextBtn').disabled=!has||st.scene===stages.length-1;
+ const isFirst=st.scene===0;
+ const isLast=!has || st.scene===stages.length-1;
+ $('prevBtn').disabled=st.concept===1 && isFirst;
+ $('nextBtn').disabled=st.concept===20 && isLast;
+ $('prevBtn').textContent=isFirst && st.concept>1?'← Concepto anterior':'← Anterior';
+ $('nextBtn').textContent=isLast && st.concept<20?'Siguiente concepto →':'Siguiente →';
  $('autoBtn').disabled=!has||stages.length<2;
  $('boardFrame').innerHTML=has?fieldHtml(sc,prev,[8,9,15,16,18,19,20].includes(st.concept)&&!!prev):`<div class="no-pitch"><div class="no-pitch-inside"><div class="no-pitch-symbol">📘 ⚽</div><h3>Aprender sin inventar movimientos</h3><p>${safe(NONSPATIAL[String(st.concept)])}</p><p class="narrow-note">Puedes leer todas las indicaciones de los entrenadores en el panel de la derecha (o debajo, en el móvil).</p></div></div>`;
  $('pitchNote').textContent=has?(sc.foot||'Campo esquemático: las posiciones y distancias no están a escala y no añaden nuevas instrucciones.'):'Este concepto se estudia mediante las indicaciones del documento.';
