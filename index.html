@@ -123,7 +123,7 @@ function gotoScene(delta){
  }
  // Continuar entre conceptos, también cuando el actual no tiene escenas.
  const nextConcept=st.concept+delta;
- if(nextConcept<1 || nextConcept>20)return;
+ if(nextConcept<1 || nextConcept>22)return;
  stopAuto();
  selectConcept(nextConcept);
  if(delta<0){
@@ -136,7 +136,7 @@ function renderAll(){
  renderNav();const c=concept(st.concept);const b=block(st.concept);
  $('lessonBadge').textContent=`Bloque ${BLOCKS.indexOf(b)+1} · ${b.short}`;
  $('lessonBadge').style.background=`${b.color}1d`; $('lessonBadge').style.color=b.color;
- $('lessonRefs').textContent=`Concepto ${st.concept} / 20 · ${c.units.length} indicaciones`;
+ $('lessonRefs').textContent=`Concepto ${st.concept} / 22 · ${c.units.length} indicaciones`;
  $('lessonTitle').textContent=`${st.concept}. ${c.title}`;
  $('lessonSummary').textContent=c.summary;
  $('markBtn').textContent=st.read.has(st.concept)?'✓ Ya repasado':'✓ Marcar repasado';
