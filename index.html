@@ -39,7 +39,7 @@
 <main class="shell"><div class="chapters" id="chapters" aria-label="Ir a uno de los cuatro bloques"></div>
 <div class="workspace">
 <aside class="panel nav-panel" aria-label="Lista de conceptos"><div class="nav-head"><h2>📚 Elige un concepto</h2><label class="search-wrap"><span class="sr-only">Buscar concepto</span><span class="search-icon" aria-hidden="true">⌕</span><input class="search" id="search" type="search" placeholder="Buscar: pared, córner..." autocomplete="off"/></label>
-<button id="mobileConceptToggle" class="mobile-concept-toggle" type="button" aria-expanded="false" aria-controls="lessonList">☰ Elegir concepto <span aria-hidden="true">⌄</span></button><div class="progress"><span id="repasoCount">0/20 repasados</span><div class="progress-track"><div class="progress-fill" id="repasoBar" role="progressbar" aria-label="Conceptos repasados" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"></div></div></div></div>
+<button id="mobileConceptToggle" class="mobile-concept-toggle" type="button" aria-expanded="false" aria-controls="lessonList">☰ Elegir concepto <span aria-hidden="true">⌄</span></button><div class="progress"><span id="repasoCount">0/22 repasados</span><div class="progress-track"><div class="progress-fill" id="repasoBar" role="progressbar" aria-label="Conceptos repasados" aria-valuemin="0" aria-valuemax="22" aria-valuenow="0"></div></div></div></div>
 <nav class="navlist" id="lessonList" aria-label="Conceptos de la guía"></nav></aside>
 <section class="panel main-panel" id="board" aria-label="Pizarra táctica"><div class="board-top"><div class="meta-line"><span id="lessonBadge" class="block-badge"></span><span id="lessonRefs" class="refs-badge"></span></div><h2 id="lessonTitle"></h2><p class="summary" id="lessonSummary"></p></div>
 <div class="stage-head"><div class="stage-text"><div class="stage-kicker" id="stageKicker"></div><h3 id="stageTitle"></h3><p id="stageDesc"></p></div><button class="voice-button" type="button" id="speakBtn" title="Leer la explicación con voz del dispositivo">🔊 Escuchar</button></div>
@@ -100,8 +100,8 @@ function renderNav(){
  });
  $('lessonList').innerHTML=parts.join('')||'<div class="no-results">No se han encontrado conceptos. Prueba con otra palabra.</div>';
  const n=st.read.size;
- $('repasoCount').textContent=`${n}/20 repasados`;
- $('repasoBar').style.width=`${(n/20)*100}%`;
+ $('repasoCount').textContent=`${n}/22 repasados`;
+ $('repasoBar').style.width=`${(n/22)*100}%`;
  $('repasoBar').setAttribute('aria-valuenow',String(n));
 }
 function stopAuto(){if(st.timer){clearInterval(st.timer);st.timer=null;}$('autoBtn').textContent='▶ Reproducir';$('autoBtn').setAttribute('aria-pressed','false');}
